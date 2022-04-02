@@ -55,6 +55,27 @@ async function run(): Promise<void> {
         context.setOutput('metadata', metadata);
       });
     }
+
+    if (inputs.removeTags && inputs.removeTags.length > 0) {
+      await core.group(`Remove`, async () => {
+        inputs.removeTags.forEach(async (tag) => {
+          core.info(`Removing tag ${tag}`);
+
+          const args: string[] = await context.getArgsForRemove(inputs, tag, defContext, buildxVersion);
+
+          // Remove tags
+          await exec
+            .getExecOutput('docker', args, {
+              ignoreReturnCode: true
+            })
+            .then(res => {
+              if (res.stderr.length > 0 && res.exitCode != 0) {
+                throw new Error(`rmi failed with: ${res.stderr.match(/(.*)\s*$/)?.[0]?.trim() ?? 'unknown error'}`);
+              }
+            });
+        });
+      });
+    }
   } catch (error) {
     core.setFailed(error.message);
   }
@@ -63,7 +84,7 @@ async function run(): Promise<void> {
 async function cleanup(): Promise<void> {
   if (stateHelper.tmpDir.length > 0) {
     core.startGroup(`Removing temp folder ${stateHelper.tmpDir}`);
-    fs.rmdirSync(stateHelper.tmpDir, {recursive: true});
+    fs.rmdirSync(stateHelper.tmpDir, { recursive: true });
     core.endGroup();
   }
 }

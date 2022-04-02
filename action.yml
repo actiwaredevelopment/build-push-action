@@ -80,6 +80,13 @@ inputs:
   tags:
     description: "List of tags"
     required: false
+  remove-tags:
+    description: "List of tags that should be removed"
+    required: false
+  force-remove:
+    description: "Force removal of the image"
+    required: false
+    default: 'false'
   target:
     description: "Sets the target stage to build"
     required: false

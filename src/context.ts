@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as tmp from 'tmp';
 
 import * as core from '@actions/core';
-import {issueCommand} from '@actions/core/lib/command';
+import { issueCommand } from '@actions/core/lib/command';
 import * as github from '@actions/github';
 
 import * as buildx from './buildx';
@@ -37,6 +37,8 @@ export interface Inputs {
   shmSize: string;
   ssh: string[];
   tags: string[];
+  removeTags: string[];
+  forceRemove: boolean;
   target: string;
   ulimit: string[];
   githubToken: string;
@@ -92,6 +94,8 @@ export async function getInputs(defaultContext: string): Promise<Inputs> {
     shmSize: core.getInput('shm-size'),
     ssh: await getInputList('ssh'),
     tags: await getInputList('tags'),
+    removeTags: await getInputList('remove-tags'),
+    forceRemove: core.getBooleanInput('force-remove'),
     target: core.getInput('target'),
     ulimit: await getInputList('ulimit', true),
     githubToken: core.getInput('github-token')
@@ -104,8 +108,29 @@ export async function getArgs(inputs: Inputs, defaultContext: string, buildxVers
     'buildx',
     ...await getBuildArgs(inputs, defaultContext, buildxVersion),
     ...await getCommonArgs(inputs, buildxVersion),
-    handlebars.compile(inputs.context)({defaultContext})
+    handlebars.compile(inputs.context)({ defaultContext })
   ];
+}
+
+export async function getArgsForRemove(inputs: Inputs, tag: string, defaultContext: string, buildxVersion: string): Promise<Array<string>> {
+  // prettier-ignore
+  return [
+    'rmi',
+    ...await getRemoveArgs(inputs, tag),
+    handlebars.compile(inputs.context)({ defaultContext })
+  ];
+}
+
+async function getRemoveArgs(inputs: Inputs, tag: string): Promise<Array<string>> {
+  const args: Array<string> = ['build'];
+
+  args.push(tag);
+
+  if (inputs.forceRemove) {
+    args.push('-f');
+  }
+
+  return args;
 }
 
 async function getBuildArgs(inputs: Inputs, defaultContext: string, buildxVersion: string): Promise<Array<string>> {
@@ -244,5 +269,5 @@ export const asyncForEach = async (array, callback) => {
 
 // FIXME: Temp fix https://github.com/actions/toolkit/issues/777
 export function setOutput(name: string, value: unknown): void {
-  issueCommand('set-output', {name}, value);
+  issueCommand('set-output', { name }, value);
 }
