@@ -59,20 +59,24 @@ async function run(): Promise<void> {
     if (inputs.removeTags && inputs.removeTags.length > 0) {
       await core.group(`Remove`, async () => {
         inputs.removeTags.forEach(async (tag) => {
-          core.info(`Removing tag ${tag}`);
+          if (tag.trim().endsWith(':')) {
+            core.warning('No valid remove tag given.');
+          } else {
+            core.info(`Removing tag ${tag}`);
 
-          const args: string[] = await context.getArgsForRemove(inputs, tag, defContext, buildxVersion);
+            const args: string[] = await context.getArgsForRemove(inputs, tag, defContext, buildxVersion);
 
-          // Remove tags
-          await exec
-            .getExecOutput('docker', args, {
-              ignoreReturnCode: true
-            })
-            .then(res => {
-              if (res.stderr.length > 0 && res.exitCode != 0) {
-                throw new Error(`rmi failed with: ${res.stderr.match(/(.*)\s*$/)?.[0]?.trim() ?? 'unknown error'}`);
-              }
-            });
+            // Remove tags
+            await exec
+              .getExecOutput('docker', args, {
+                ignoreReturnCode: true
+              })
+              .then(res => {
+                if (res.stderr.length > 0 && res.exitCode != 0) {
+                  throw new Error(`rmi failed with: ${res.stderr.match(/(.*)\s*$/)?.[0]?.trim() ?? 'unknown error'}`);
+                }
+              });
+            }
         });
       });
     }
