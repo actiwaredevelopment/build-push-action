@@ -27389,7 +27389,7 @@ function getArgsForRemove(inputs, tag, defaultContext, buildxVersion) {
 exports.getArgsForRemove = getArgsForRemove;
 function getRemoveArgs(inputs, tag) {
     return __awaiter(this, void 0, void 0, function* () {
-        const args = ['build'];
+        const args = [''];
         args.push(tag);
         if (inputs.forceRemove) {
             args.push('-f');

@@ -122,7 +122,7 @@ export async function getArgsForRemove(inputs: Inputs, tag: string, defaultConte
 }
 
 async function getRemoveArgs(inputs: Inputs, tag: string): Promise<Array<string>> {
-  const args: Array<string> = ['build'];
+  const args: Array<string> = [''];
 
   args.push(tag);
 
